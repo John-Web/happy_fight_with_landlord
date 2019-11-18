@@ -1,4 +1,4 @@
-package Poker;
+package poker;
 
 /**
  * @author: beibe

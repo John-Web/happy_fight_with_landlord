@@ -1,4 +1,4 @@
-package PokerRecorder;
+package table;
 
 public class PokerRecorder {
 
