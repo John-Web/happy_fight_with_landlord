@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>login</title>
+    <script type="text/javascript" src="/js/jquery-3.4.1.js"></script>
+    <script type="text/javascript">
+        function tocheckpoint() {
+            var name = document.getElementById("name_text").value;
+            if(name == "") {
+                alert("请输入用户名");
+                return;
+            }
+            //获取用户的输入
+            var data = {
+                'key' : "player_name",
+                'value': name
+            }
+
+            //alert(window.location.href)
+            $.ajax({
+                url : '/DataCollection/client_service',
+                type : 'POST',
+                contentType : 'application/x-www-form-urlencoded',
+                dataType : 'json',
+                data : data,
+                success : function (data) {
+                    //alert("success");
+                    alert(data.state_code)
+                    var host = window.location.host;
+                    var url = "http://" + host + "/hall"
+                    location.href = url;
+                },
+                error : function() {
+                    alert("error1");
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+<div class="query" style="font-size: 0px;width: 680px;height: 400px;position: absolute;top: 50%;left: 50%;margin-left: -340px;margin-top: -40px">
+    <input id="name_text" type="text", style="width: 500px;height: 35px;font-size: 15px">
+    <button id="query_button" type="button", style="color: white;width: 150px;height: 35px;border: none;
+            background-color: #3583ff;font-size: 15px;" onclick="tocheckpoint()">
+        请输入您的名字
+    </button>
+</div>
+</body>
+</html>
