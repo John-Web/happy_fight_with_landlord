@@ -27,18 +27,18 @@ public class DataCollection {
         }
         //这里得到用户对应操作的结果     比如请求创建房间得到 bool值和房间创建消息
         Map<String, Object> map = new HashMap<>();
-        if(webData.getKey()=="pvp_select") {
+        if(key.equalsIgnoreCase("pvp_select")) {
             try {
                 WebData webData_select_result = WebContains.ServerDatas.take();
                 WebData webData_select_result_message = WebContains.ServerDatas.take();
                 map.put("Create_room_result", webData_select_result.getValue());
                 map.put("Create_room_result_message", webData_select_result_message.getValue());
-                System.out.println("123");
+               
             } catch (Exception e) {
                 System.out.println(e.getMessage());
-                System.out.println("456");
+           
             }
-            System.out.println("789");
+           
         }
         else{
             map.put("state_code",200);
