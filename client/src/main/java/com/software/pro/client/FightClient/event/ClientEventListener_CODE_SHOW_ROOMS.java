@@ -1,5 +1,7 @@
 package com.software.pro.client.FightClient.event;
 
+import com.software.pro.client.FightClient.WebContains;
+import com.software_pro.common.entity.WebData;
 import com.software_pro.common.enums.ClientEventCode;
 import com.software_pro.common.printer.FormatPrinter;
 import com.software_pro.common.printer.SimplePrinter;
@@ -26,9 +28,24 @@ public class ClientEventListener_CODE_SHOW_ROOMS extends ClientEventListener{
 				FormatPrinter.printNotice(format, room.get("roomId"), room.get("roomOwner"), room.get("roomClientCount"), room.get("roomType"));
 			}
 			//将roomlist写回客户端
+
+			try{
+				WebContains.ServerDatas.put(new WebData("Show_room_result",1));
+				WebContains.ServerDatas.put(new WebData("Show_room_result_message",roomList));
+			}
+			catch (Exception e){
+				System.out.println(e.getMessage());
+			}
+
 			SimplePrinter.printNotice("");
 		}else {
 			SimplePrinter.printNotice("No available room, please create a room ！");
+			try{
+				WebContains.ServerDatas.put(new WebData("Show_room_result",0));
+			}
+			catch (Exception e){
+				System.out.println(e.getMessage());
+			}
 		}
 		get(ClientEventCode.CODE_SHOW_OPTIONS_PVP).call(channel, data);
 	}

@@ -25,10 +25,11 @@ public class ClientEventListener_CODE_SHOW_OPTIONS_PVP extends ClientEventListen
 		try{
 			WebData webData = ClientContains.webDatas.take();
 			pvp_select = webData.getKey();
-			result = (String) webData.getValue();
+			System.out.println("class: "+webData.getValue().getClass()+" value: "+webData.getValue());
+			result = (String)webData.getValue();
 		}
 		catch(Exception e){
-			System.out.println(e.getMessage());
+		    e.printStackTrace();
 		}
 
 		if(result.equalsIgnoreCase("BACK")) {
@@ -36,33 +37,22 @@ public class ClientEventListener_CODE_SHOW_OPTIONS_PVP extends ClientEventListen
 		}else {
 			int choose = OptionsUtils.getOptions(result);                        //客户端和服务器的第三次交互对战选项
 			
-			if(choose == 1) {
+			if(pvp_select.equalsIgnoreCase("pvp_select")&&choose == 1) {
 				pushToServer(channel, ServerEventCode.CODE_ROOM_CREATE, null);
-			}else if(choose == 2){
+			}else if(pvp_select.equalsIgnoreCase("pvp_select")&&choose == 2){
 				pushToServer(channel, ServerEventCode.CODE_GET_ROOMS, null);
-			}else if(choose == 3){    //表示加入一个房间
+			}else if(pvp_select.equalsIgnoreCase("join_room_select")){    //表示加入一个房间
 				SimplePrinter.printNotice("Please enter the room id you want to join (enter [BACK] return options list)");
-				String line = "";
-				try{
-					WebData webData = ClientContains.webDatas.take();       //roomid  继续消费
-					if(webData.getKey().equalsIgnoreCase("roomid"))
-						line = (String)webData.getValue();
-				}
-				catch (Exception e){
-					System.out.println(e.getMessage());
-				}
-				//line = SimpleWriter.write("roomid");
-				
-				if(line.equalsIgnoreCase("BACK")) {
+
+				if(choose==0) {
 					call(channel, data);
 				}else {
-					int option = OptionsUtils.getOptions(line);
-					if(line == null || option < 1) {
+					if(choose < 0) {
 						SimplePrinter.printNotice("Invalid options, please choose again：");
 						call(channel, data);
 					}else{
 						//要加入的房间号
-						pushToServer(channel, ServerEventCode.CODE_ROOM_JOIN, String.valueOf(option));
+						pushToServer(channel, ServerEventCode.CODE_ROOM_JOIN, String.valueOf(choose));
 					}
 				}
 			}else {

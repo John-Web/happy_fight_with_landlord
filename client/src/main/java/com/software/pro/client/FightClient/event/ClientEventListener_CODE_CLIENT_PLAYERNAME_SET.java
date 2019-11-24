@@ -34,7 +34,7 @@ public class ClientEventListener_CODE_CLIENT_PLAYERNAME_SET extends ClientEventL
 			WebData webData = ClientContains.webDatas.take();
 			String name_key = webData.getKey();
 			if (name_key.equalsIgnoreCase("player_name")) {
-				String name = (String) webData.getValue();
+				String name = webData.getValue().toString();
 				System.out.println(name);                                           //用户与服务器的第一次交互: 输入用户名,也可以加密码
 				// If the length of nickname is more that NICKNAME_MAX_LENGTH
 				if (name.trim().length() > NAME_MAX_LENGTH) {
