@@ -26,21 +26,6 @@ public class FightServer implements ApplicationRunner {
 
 
     public void ServerStart() throws Exception{
-//        EventLoopGroup bossGroup = new NioEventLoopGroup();
-//        EventLoopGroup wokerGroup = new NioEventLoopGroup();
-//
-//        try{
-//            ServerBootstrap serverBootstrap = new ServerBootstrap();
-//            serverBootstrap.group(bossGroup,wokerGroup).channel(NioServerSocketChannel.class)
-//                    .childHandler(new FightServerInializer());
-//
-//            ChannelFuture channelFuture = serverBootstrap.bind(8080).sync();
-//            channelFuture.channel().closeFuture().sync();
-//        }finally {
-//            bossGroup.shutdownGracefully();
-//            wokerGroup.shutdownGracefully();
-//        }
-
         EventLoopGroup parentGroup = Epoll.isAvailable() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
         EventLoopGroup childGroup = Epoll.isAvailable() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
         try {

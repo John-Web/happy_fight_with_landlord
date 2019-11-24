@@ -3,7 +3,11 @@ package com.software.pro.server.FightServer;
 
 import com.software_pro.common.entity.ClientSide;
 import com.software_pro.common.entity.Room;
+import com.software_pro.common.entity.WebData;
+
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -16,6 +20,9 @@ public class ServerContains {    // 内存
     public final static Map<Integer, ClientSide> CLIENT_SIDE_MAP = new ConcurrentSkipListMap<>();
 
     public final static Map<String, Integer> CHANNEL_ID_MAP = new ConcurrentHashMap<>();
+
+    //该变量包含服务器中所有房间里人员交互产生的 WebData
+    public final static Map<Integer,BlockingQueue<WebData>>Server_Room_Data = new ConcurrentSkipListMap<>();
 
     private final static AtomicInteger CLIENT_ATOMIC_ID = new AtomicInteger(1);
 
@@ -51,10 +58,13 @@ public class ServerContains {    // 内存
     }
 
     public final static Room removeRoom(int id){
+        Server_Room_Data.remove(id);
         return ROOM_MAP.remove(id);
     }
 
     public final static Room addRoom(Room room){
+        Server_Room_Data.put(room.getId(),new ArrayBlockingQueue<WebData>(27));      //房间里所有的交互信息
         return ROOM_MAP.put(room.getId(), room);
     }
+
 }
