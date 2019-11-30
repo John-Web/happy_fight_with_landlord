@@ -5,6 +5,7 @@ import com.software_pro.common.channel.ChannelUtils;
 import com.software_pro.common.entity.ClientSide;
 import com.software_pro.common.entity.Poker;
 import com.software_pro.common.entity.Room;
+import com.software_pro.common.entity.WebData;
 import com.software_pro.common.enums.ClientEventCode;
 import com.software_pro.common.enums.ClientRole;
 import com.software_pro.common.enums.ClientType;
@@ -23,7 +24,7 @@ public class ServerEventListener_CODE_GAME_STARTING implements ServerEventListen
 
 		LinkedList<ClientSide> roomClientList = room.getClientSideList();
 
-		// 服务器发牌到客户端
+		// 服务器发牌到房间服务
 		List<List<Poker>> pokersList = PokerHelper.distributePoker();
 		int cursor = 0;
 		for(ClientSide client: roomClientList){
@@ -57,11 +58,17 @@ public class ServerEventListener_CODE_GAME_STARTING implements ServerEventListen
 			if(client.getRole() == ClientRole.PLAYER) {
 				ChannelUtils.pushToClient(client.getChannel(), ClientEventCode.CODE_GAME_STARTING, result);
 			}else {
-				//机 器 人 操作
+				//机 器 人 
 			}
 
 		}
-
+		//向房间服务器发送全局服务器设置完成的消息       然后房间服务器就可以快乐的使用clientside的牌了
+		//接入房间服务器
+		try{
+			ServerContains.Server_Room_Data.get(room.getId()).put(new WebData("Setup_completed",1));
+		}
+		catch (Exception e){
+			e.printStackTrace();
+		}
 	}
-
 }

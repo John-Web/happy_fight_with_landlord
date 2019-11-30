@@ -1,6 +1,7 @@
 package com.software.pro.server.FightServer;
 
 
+import com.software.pro.server.FightServer.servlet.RoomsContains;
 import com.software_pro.common.entity.ClientSide;
 import com.software_pro.common.entity.Room;
 import com.software_pro.common.entity.WebData;
@@ -39,12 +40,7 @@ public class ServerContains {    // 内存
     public final static ThreadPoolExecutor THREAD_EXCUTER = new ThreadPoolExecutor(500, 500, 0, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<Runnable>());
 
-    /**
-     * Get room by id, with flush time
-     *
-     * @param id room id
-     * @return
-     */
+
     public final static Room getRoom(int id){
         Room room = ROOM_MAP.get(id);
         if(room != null){
@@ -59,11 +55,15 @@ public class ServerContains {    // 内存
 
     public final static Room removeRoom(int id){
         Server_Room_Data.remove(id);
+        ROOM_MAP.remove(id);
+        RoomsContains.removeRoomMessage(id);
         return ROOM_MAP.remove(id);
     }
 
     public final static Room addRoom(Room room){
         Server_Room_Data.put(room.getId(),new ArrayBlockingQueue<WebData>(27));      //房间里所有的交互信息
+        ROOM_MAP.put(room.getId(),room);
+        RoomsContains.addRoom(room);
         return ROOM_MAP.put(room.getId(), room);
     }
 

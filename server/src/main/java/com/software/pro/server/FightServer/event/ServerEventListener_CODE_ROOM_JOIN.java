@@ -3,6 +3,7 @@ package com.software.pro.server.FightServer.event;
 
 
 import com.software.pro.server.FightServer.ServerContains;
+import com.software.pro.server.FightServer.servlet.RoomsContains;
 import com.software_pro.common.channel.ChannelUtils;
 import com.software_pro.common.entity.ClientSide;
 import com.software_pro.common.entity.Room;
@@ -13,6 +14,7 @@ import com.software_pro.common.enums.ServerEventCode;
 import com.software_pro.common.helper.MapHelper;
 
 import java.util.LinkedList;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 public class ServerEventListener_CODE_ROOM_JOIN implements ServerEventListener {
@@ -48,7 +50,6 @@ public class ServerEventListener_CODE_ROOM_JOIN implements ServerEventListener {
 				roomClientList.add(clientSide);
 				roomClientMap.put(clientSide.getId(), clientSide);
 
-
 				room.setStatus(RoomStatus.WAIT);          //房间半满 , 等待
 				String result = MapHelper.newInstance()
 						.put("clientId", clientSide.getId())
@@ -75,44 +76,19 @@ public class ServerEventListener_CODE_ROOM_JOIN implements ServerEventListener {
 				if (roomClientMap.size() == 3) {
 					clientSide.setNext(roomClientList.getFirst());
 					roomClientList.getFirst().setPre(clientSide);
-					try {
-						ServerContains.Server_Room_Data.get(room.getId()).put(new WebData("game_will_begin", 1));
+					//尝试从房间服务器接收游戏开始的讯号, 以room_id为标识的 从RoomsContains里取值 这里为第一次
+					try{
+						BlockingQueue<WebData>room_message = RoomsContains.Rooms_Messages_MAP.get(room.getId());
+						WebData game_begin_message = room_message.take();
+						if(game_begin_message.getKey().equalsIgnoreCase("message_form_roomservlet_game_begin")){
+							ServerEventListener.get(ServerEventCode.CODE_GAME_STARTING).call(clientSide, String.valueOf(room.getId()));
+						}
 					}
 					catch (Exception e){
 						e.printStackTrace();
 					}
 				}
-
-				//下面的开始游戏先注释掉是因为要在房间服务器开始游戏
-				//ServerEventListener.get(ServerEventCode.CODE_GAME_STARTING).call(clientSide, String.valueOf(room.getId()));
-//				}else {
-//					room.setStatus(RoomStatus.WAIT);          //房间半满 , 等待
-//
-//					String result = MapHelper.newInstance()
-//							.put("clientId", clientSide.getId())
-//							.put("clientPlayername", clientSide.getOwner_name())
-//							.put("roomId", room.getId())
-//							.put("roomOwner", room.getRoomOwner())
-//							.put("roomClientCount", room.getClientSideList().size())
-//							.put("clientRole",clientSide.getRole().toString())
-//							.json();
-//					for(ClientSide client: roomClientMap.values()) {
-//						ChannelUtils.pushToClient(client.getChannel(), ClientEventCode.CODE_ROOM_JOIN_SUCCESS, result);
-//					}
-//					try {
-//						ServerContains.Server_Room_Data.get(room.getId()).put(new WebData("join_room_type", 1));
-//						ServerContains.Server_Room_Data.get(room.getId()).put(new WebData("join_room_client_id", String.valueOf(clientSide.getId())));
-//						ServerContains.Server_Room_Data.get(room.getId()).put(new WebData("join_room_client_name", clientSide.getOwner_name()));
-//						ServerContains.Server_Room_Data.get(room.getId()).put(new WebData("join_room_client_role", clientSide.getRole().toString()));
-//					}
-//					catch (Exception e){
-//						e.printStackTrace();
-//					}
 			}
-
-
 		}
 	}
-
-
 }
