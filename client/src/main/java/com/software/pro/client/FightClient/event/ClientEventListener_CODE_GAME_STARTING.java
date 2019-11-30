@@ -29,15 +29,10 @@ public class ClientEventListener_CODE_GAME_STARTING extends ClientEventListener{
 		SimplePrinter.printNotice("Your pokers are");
 		//将牌发送给web页面
 		SimplePrinter.printPokers(pokers);
-		//可持久化存储在redis中
-		try {
-			WebContains.ServerDatas.put(new WebData("Game starting message", "Game starting !! Your pokers are"));
-			WebContains.ServerDatas.put(new WebData("pokers",pokers));
-		}
-		catch (Exception e){
-			System.out.println(e.getMessage());
-		}
-		get(ClientEventCode.CODE_GAME_LANDLORD_ELECT).call(channel, data);
+
+
+		//从这里开始客户端网页和大厅服务器断开联系,改为web页面和房间服务器的直接交互
+		//get(ClientEventCode.CODE_GAME_LANDLORD_ELECT).call(channel, data);
 	}
 
 }

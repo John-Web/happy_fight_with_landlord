@@ -40,7 +40,7 @@ public class ClientEventListener_CODE_GAME_LANDLORD_ELECT extends ClientEventLis
 				call(channel, data);
 			}
 		}else { //在次卡住还没轮到的用户
-			SimplePrinter.printNotice("It's " + map.get("nextClientNickname") + "'s turn. Please wait patiently for his/her confirmation !");
+			SimplePrinter.printNotice("It's " + map.get("nextClientPlayername") + "'s turn. Please wait patiently for his/her confirmation !");
 			//将此消息推送给web
 		}
 		

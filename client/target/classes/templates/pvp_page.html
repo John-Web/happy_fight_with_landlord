@@ -24,7 +24,7 @@
                     if(index==1) {
                         if (data.Create_room_result > 0) {
                             //创建房间的玩家首先加入房间
-                            document.form.room_id.value=data.Create_room_result;
+                            document.form.room_id.value=data.Create_room_result;                //房间创建成功返回房间id
                             document.form.submit();
                             } else {
                             alert("Error while Create_Room excusing");

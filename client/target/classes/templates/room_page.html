@@ -1,4 +1,4 @@
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.w3.org/1999/xhtml">
 <head lang="en">
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
@@ -8,24 +8,91 @@
 </head>
 <body>
 <div id="datas">
-    <!--<input th:text="'当前房间人数:' + ${clientsideList.size()}" type="hidden" id="client_size">-->
-    <!--<input th:text="'房间号:' + ${room_id}" type="hidden" id="room_id">-->
+    <input id="clients_data" th:value="${clients_data}" type="hidden">
     <div id="room_id"></div>
     <div id="onlineCount"></div>
 </div>
+
+<div id="others" style="margin-top: 150px">
+    <div id="left" style="float: left; background: blue;height: 200px;width: 200px;margin-left:50px">
+        <div id="leftinfo"></div>
+        <div id="leftelect"></div>
+        <div id="leftgrab"></div>
+    </div>
+    <div id="right" style="float: left; background: aqua; height: 200px;width: 200px; margin-left: 1000px">
+        <div id="rightinfo"></div>
+        <div id="righelect"></div>
+        <div id="righgrab"></div>
+    </div>
+</div>
+<br>
+<div id="center" style="background: blueviolet; height: 200px;width: 200px;margin-top: 200px; margin-left: 650px">
+    <div id="centerinfo"></div>
+    <div id="centerelect"></div>
+    <div id="centergrab"></div>
+</div>
 </body>
 <script type="text/javascript">
+    //这里需要判断 clients_data/33的结果 1,2,3对应不同的情况****************************初始化资源************************//
+    var clients_data = $("#clients_data").val();
+    clients_data = clients_data.replace('[','');
+    clients_data = clients_data.replace(']','');
+    clients_data = clients_data.replace(' ','');
+    clients_data = clients_data.split(",");
+    var datalength = clients_data.length;
+    var current_player_name = clients_data[datalength - 1];                                            //当前用户的用户名
+    current_player_name = current_player_name.replace(/\s+/g,"");
+    switch (datalength/3) {
+        case 1:
+            var center = "";
+            for(var i=0;i< datalength; i++){
+                center += clients_data[i] + " ";
+            }
+            $('#centerinfo').text(center);
+            break;
+        case 2:
+            var right = "";
+            var center = "";
+            for(var i=0;i< datalength/2;i++){
+                right += clients_data[i];
+            }
+            for(var i=datalength/2;i<datalength;i++){
+                center += clients_data[i];
+            }
+            $('#centerinfo').text(center);
+            $('#rightinfo').text(right);
+            break;
+        case 3:
+            var left="";
+            var right="";
+            var center = "";
+            for(var i=0;i< datalength/3;i++){
+                left += clients_data[i];
+            }
+            for(var i=datalength/3;i<2*datalength/3;i++){
+                right += clients_data[i];
+            }
+            for(var i=2*datalength/3;i<datalength;i++){
+                center += clients_data[i];
+            }
+            $('#centerinfo').text(center);
+            $('#leftinfo').text(left);
+            $('#rightinfo').text(right);
+            break;
+    }
+    //****************************************************************************************************************//\
+    var client_id = [[${client_id}]];                                                                      //当前用户的ID
     var room_id = [[${room_id}]];
     var is_owner = 0;                 //玩家默认为非房主
     var index = [[${roomClientCount}]] - 1;      //玩家序号, 房主为0,后面加入的玩家依次为1, 2,       之后向控制器提交确认请求时必须带上index
-
+    //****************************************************************************************************************//
     var socket;
     if(typeof(WebSocket) == "undefined") {
         alert("您的浏览器不支持WebSocket");
         console.log("您的浏览器不支持WebSocket");
     }
     else{
-        socket = new WebSocket("ws://localhost:8090/room_page/"+room_id.toString());
+        socket = new WebSocket("ws://localhost:8090/room_page/"+room_id.toString()+"/"+client_id.toString());
 
         //打开事件
         socket.onopen = function() {
@@ -36,24 +103,116 @@
         socket.onmessage = function(msg) {
             var map = eval("(" + msg.data + ")");//解析对象
             for(var key in map){
-                if(key == "onlineCount") {
+                if(key === "onlineCount") {
                     var newonlineCount = map[key];
                     $('#onlineCount').text("当前房间人数: "+newonlineCount);
                 }
-                if(key == "join_type"){
-                    if (map[key] == 1){
+                if(key === "join_type"){
+                    if (map[key] === 1){
                         is_owner = 1
                         var str="<input type=\"button\" id=\"buttonbegingame\" value=\"开始游戏\">";
                         $("#datas").append(str);
                     }
-                    else if(map[key] == 0 & is_owner==0 & $('#buttongameready').length<=0){
+                    else if(map[key] === 0 & is_owner===0 & $('#buttongameready').length<=0){
                         var str="<input type=\"button\" id=\"buttongameready\" value=\"准    备\">";
                         $("#datas").append(str);
                     }
                 }
+                if(key==="game_begin_result"){
+                }
+                if(key==="join_message"){
+                }
+                if(key === "your_pokers"){
+                }
+                if(key === "join_Name"){
+                    if(map[key] !== current_player_name.toString()){
+                        //是别人加入房间
+                        if(map["onlineCount"]===2){
+                            //加在左边
+                            $('#leftinfo').text(map["join_message"]);
+                        }
+                        else if(map["onlineCount"]===3){
+                            //index = 0 加在右边
+                            if(index === 0){
+                                $('#rightinfo').text(map["join_message"]);
+                            }
+                            //index = 1 加在左边
+                            else if(index === 1){
+                                $('#leftinfo').text(map["join_message"]);
+                            }
+                        }
+                    }
+                }
+                if(key==="current_elect_player_index"){
+                    var currentindex = map[key];
+                    var pos = "";
+                    if(index === currentindex){
+                        provide_Timer_Div("center");
+                        provide_elect_button();                    //给自己设置按钮,设置倒计时器也囊括其中
+                    }
+                    else{
+                        pos = getPos(index,currentindex);
+                        provide_Timer_Div(pos);
+                        provide_other_Timer(pos);                  //给他人设置倒计时器
+                    }
+                }
+                if(key==="LAST_NOTELECT_LANDLORD_PALYER_INDEX"){
+                    if(map["TURNED_DECIDE_LANDLORD_ELECT_PLAYER_INDEX"] === -1){
+                        var last_not_elect_index = map[key];
+                        if(index!==last_not_elect_index){
+                            var pos = getPos(index,last_not_elect_index);
+                            clear_other_Timer(pos);
+                        }
+                        else{
+                            clear_Timer();
+                        }
+                        alert("无人叫地主,游戏重新开始");
+                    }
+                    else {
+                        var last_not_elect_index = map[key];
+                        var last_not_elect_player_name = map["LAST_NOTELECT_LANDLORD_PLAYER_NAME"];
+                        var next_decide_player_index = map["TURNED_DECIDE_LANDLORD_ELECT_PLAYER_INDEX"];
+                        //清除当前的倒计时器,为下一个玩家添加倒计时器, 如果下一个玩家是自己,则给自己添加按钮
+                        var last_not_elect_player_pos = getPos(index, last_not_elect_index);     //清除这个位置上的倒计时,在这个位置上显示不出
+                        var next_decide_player_pos = getPos(index, next_decide_player_index);    //在这个位置上开始倒计时,如果是center则添加按钮
+                        clear_other_Timer(last_not_elect_player_pos);
+
+                        provide_Timer_Div(next_decide_player_pos);
+                        provide_other_Timer(next_decide_player_pos);
+                        if (next_decide_player_pos === "center")
+                            provide_elect_button();
+                    }
+                }
+                //结束叫牌叫牌, 当点击叫地主时,服务器可能返回 next_landlord_grab_index,                也可能返回landlord_index
+                //                                          对应有一位或者两位未决策玩家的情况          对应叫地主的玩家是最后一个玩家的情况
+                if(key === "LAST_ELECT_OR_GRAB_PLAYER_INDEX"){
+                    var last_elect_or_grab_index = map[key];
+                    var last_elect_or_grab_pos = getPos(index,last_elect_or_grab_index);
+                    if(last_elect_or_grab_pos!=="center"){                             //在这里有可能是自己,但因为自己点击按钮时已经处理了,所以再次接收时不做处理
+                        clear_other_Timer(last_elect_or_grab_pos);
+                    }
+                }
+                if(key === "NEXT_LANDLORD_GRAB_PLAYER_INDEX"){
+                    var next_grab_index = map[key];
+                    var next_grab_pos = getPos(index,next_grab_index);
+                    provide_Timer_Div(next_grab_pos);
+                    provide_other_Timer(next_grab_pos);
+                    if(next_grab_pos === "center")
+                        provide_grab_button();
+                }
+                if(key==="LANDLORD_INDEX"){
+                    var landlord_index = map[key];
+                    var landlord_pos = getPos(index,landlord_index);
+                    if(landlord_pos!=="center") {
+                        clear_other_Timer(landlord_pos);
+                        provide_landlord_flag(landlord_pos);
+                    }
+                    else if(landlord_pos === "center"){
+                        provide_center_landlord_seat();
+                    }
+                }
                 console.log(key+":"+map[key]);
             }
-            //发现消息进入    开始处理前端触发逻辑 调用gif逻辑
         };
         //关闭事件
         socket.onclose = function() {
@@ -67,11 +226,18 @@
         }
     }
 </script>
-<script type="text/javascript">
+<script type="text/javascript">    //处理扑克牌的函数
+    function printpokers(pokers, position){
+        for(var i=0;i< pokers.length;i++){
+
+        }
+    }
+</script>
+<script type="text/javascript">                                                                      //页面按钮点击函数簇
     var op = 0;
     $(document).on('click', '#buttongameready', function(){
         if(op == 0) {
-            $('#buttongameready').val("取 消 准 备")
+            $('#buttongameready').val("取消准备")
             op=1;
         }
         else if(op == 1){
@@ -92,7 +258,7 @@
             async: false,
             data : data,
             success: function(data){
-              alert(data.state_code);
+                alert("已准备,请等待房主开始游戏");
             },
             error : function() {
                 alert("error 服务器异常");
@@ -114,12 +280,161 @@
             async: false,
             data : data,
             success: function(data){
-              alert(data.state_code);
             },
             error : function() {
                 alert("error 服务器异常");
             }
         });     //跳转房间页面
     });
+
+    $(document).on('click', '#buttonelectlandlord',function(){
+        var code = "CODE_GAME_LANDLORD_ELECT";
+        socket.send(code);
+        clear_elect_button();              //清除叫地主按钮
+        clear_Timer();
+    });
+    $(document).on('click', '#buttonnotelectlandlord',function () {
+        var code = "CODE_GAME_LANDLORD_NOT_ELECT";
+        socket.send(code);
+        clear_elect_button();
+        clear_Timer();
+    });
+    $(document).on('click', '#buttongrablandlord',function(){
+        var code = "CODE_GAME_LANDLORD_GRAB";
+        socket.send(code);
+        clear_grab_button();              //清除抢地主按钮
+        clear_Timer();
+    });
+    $(document).on('click', '#buttonnotgrablandlord',function () {
+        var code = "CODE_GAME_LANDLORD_NOT_GRAB";
+        socket.send(code);
+        clear_grab_button();
+        clear_Timer();
+    });
+
 </script>
+<script type="text/javascript">
+    function startTimer(duration, display,pos) {
+        var timer = duration, minutes, seconds;
+        setInterval(function () {
+            minutes = parseInt(timer / 60, 10)
+            seconds = parseInt(timer % 60, 10);
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+            display.textContent = minutes + ":" + seconds;
+            if (--timer < 0) {
+                timer = duration;
+                //触发不叫地主点击事件
+                if(pos === "center"){
+                    if ($("#buttonnotelectlandlord").length > 0)
+                        $("#buttonnotelectlandlord").click();
+
+                    if ($("#buttonnotgrablandlord").length > 0)
+                        $("#buttonnotgrablandlord").click();
+                }
+            }
+        }, 1000);
+    }
+
+    function getPos(thisindex,index) {
+        //1<-0<-2<-1<-0
+        if (index === thisindex) {
+            return "center";                                                       //0 1 left    0 2 right
+        }                                                                          //1 2 left    1 0 right
+        else if (thisindex - index === 1 || index - thisindex === 1) {
+            if (thisindex < index) {
+                return "left";
+            } else if (thisindex > index) {
+                return "right";
+            }
+        }                                                                          //2 0 left    2 1 right
+        else {
+            return thisindex > index ? "left" : "right";
+        }
+    }
+
+    function provide_grab_button(){
+        //警示器和定时器加在pos上然后额外加上按钮, 抢地主 不抢地主
+        var s_15 = 15;
+        var display = document.querySelector('#centertime');
+        startTimer(s_15,display,"center");
+        var stryes = "<input type=\"button\" id=\"buttongrablandlord\" value=\"抢地主\">";
+        var strno = "<input type=\"button\" id=\"buttonnotgrablandlord\" value=\"不 抢\">";
+        $("#centergrab").append(stryes);
+        $("#centergrab").append(strno);
+    }
+    function provide_elect_button(){
+        //警示器和定时器加在pos上然后额外加上按钮, 叫地主 不叫地主
+        var s_15 = 15;
+        var display = document.querySelector('#centertime');
+        startTimer(s_15,display,"center");
+
+        var stryes = "<input type=\"button\" id=\"buttonelectlandlord\" value=\"叫地主\">";
+        var strno = "<input type=\"button\" id=\"buttonnotelectlandlord\" value=\"不 叫\">";
+        $("#centerelect").append(stryes);
+        $("#centerelect").append(strno);
+    }
+    function provide_Timer_Div(pos) {                             //给自己使用或者给唯一一个其他玩家提供div
+        if(pos === "center"){
+            var centertime = "<div id=\"centertime\">00:15</div>";
+            $("#center").append(centertime);
+        }
+        else if(pos === "left"){
+            var lefttime = "<div id=\"lefttime\">00:15</div>";
+            $("#left").append(lefttime);
+        }
+        else if(pos === "right"){
+            var righttime = "<div id=\"righttime\">00:15</div>";
+            $("#right").append(righttime);
+        }
+    }
+    function clear_elect_button(){
+        $('#buttonelectlandlord').remove();
+        $('#buttonnotelectlandlord').remove();
+        clear_Timer();
+    }
+    function clear_grab_button(){
+        $('#buttongrablandlord').remove();
+        $('#buttonnotgrablandlord').remove();
+        clear_Timer();
+    }
+    function clear_Timer(){
+        $('#centertime').remove();
+    }
+    function provide_other_Timer(pos){
+        if(pos==="left"){
+            var display = document.querySelector('#lefttime');
+            var s_15 = 15
+            startTimer(s_15,display,"left");
+        }
+        else if(pos==="right"){
+            var display = document.querySelector('#righttime');
+            var s_15 = 15
+            startTimer(s_15,display,"right");
+        }
+    }
+    function clear_other_Timer(pos){
+        if(pos === "left"){
+            $('#lefttime').remove();
+        }
+        else if(pos === "right"){
+            $('#righttime').remove();
+        }
+    }
+    function provide_center_landlord_seat(){
+        var landlord_seat = "<div id=\"center_landlord_seat\">我是地主</div>";
+        $("#center").append(landlord_seat);
+    }
+    function provide_landlord_flag(pos){
+        if(pos === "left"){
+            var leftflag = "<div id=\"center_landlord_seat\">他是地主</div>";
+            $("#left").append(leftflag);
+        }
+        else if(pos === "right"){
+            var rightflag = "<div id=\"center_landlord_seat\">他是地主</div>";
+            $("#right").append(rightflag);
+        }
+    }
+</script>
+
 </html>

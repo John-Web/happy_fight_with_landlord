@@ -98,7 +98,7 @@ public class DataCollection {
                         for(ClientSide clientSide:clientSideLinkedList) {
                             clientlist.add(String.valueOf(clientSide.getId()));
                             clientlist.add(clientSide.getOwner_name());
-                            clientlist.add(clientSide.getRole().toString());
+                            clientlist.add("\""+clientSide.getRole().toString()+"\"");
                         }
                         map.put("join_room_result",clientlist);//长度至少为6
                     }

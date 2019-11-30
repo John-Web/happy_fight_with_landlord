@@ -15,10 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 @RequestMapping("/")
@@ -45,7 +42,6 @@ public class ClientPagecontroller {
         //
         ModelAndView modelAndView=new ModelAndView();
         //需要服务器的api获取指定房间的信息
-        Map<String,Object>data = new HashMap<>();
         MultiValueMap<String, Object> request = new LinkedMultiValueMap<>();
         request.add("room_id", room_id);
 
@@ -55,23 +51,21 @@ public class ClientPagecontroller {
         Map<String, Object> map = MapHelper.parser(result);  //房主, 客户端s
 
         if(map.containsKey("clientsideList")){
-            List<String>list = new LinkedList<String>();
+            ArrayList<String>list = new ArrayList<>();
             LinkedList<ClientSide> clientSideLinkedList = Noson.convert(map.get("clientsideList"), new NoType<LinkedList<ClientSide>>() {});
-            data.put("clientsideList",clientSideLinkedList);
-            modelAndView.addObject("clientsideList",clientSideLinkedList);
-            //
             for(ClientSide clientSide:clientSideLinkedList) {
                 System.out.println("id: " + clientSide.getId() + " name: " + clientSide.getOwner_name());
+                list.add(clientSide.getRole().toString());
                 list.add(String.valueOf(clientSide.getId()));
                 list.add(clientSide.getOwner_name());
-                list.add(clientSide.getRole().toString());
             }
             modelAndView.addObject("room_id",room_id);
+            modelAndView.addObject("client_id",clientSideLinkedList.get(clientSideLinkedList.size()-1).getId());
             modelAndView.addObject("roomClientCount",clientSideLinkedList.size());
+            modelAndView.addObject("clients_data",list);
         }
         //根据room_id获取房间信息 ,存map返回room_page
         modelAndView.setViewName("room_page");
         return modelAndView;
-        //return new ModelAndView("room_page",data);
     }
 }
